@@ -17,10 +17,14 @@ class Player:
         self.ms             = 0.12
         self.slow           = 1
         self.shotCooldown   = 0
-        self.gun            = None
+        self.attackFrames   = 0
+        self.attacking      = False
+        self.weapon         = None
         self.computer       = True
         self.d              = [0, 0, 0, 0]
         self.screen         = None
+        self.direction      = 0
+        self.display        = False
         self.spec           = {"lifesteal" : 0, "missingHpHeal" : 0, "revive" : True, "currentHealthDmg" : 0, "missingHpDmg" : 0, "playerHpBonus" : 0}
 
     def onHit(self, enemy, bullet):
@@ -42,6 +46,10 @@ class Player:
             #self.spec["revive"] = False
             return True
 
+    def toggleDisplay(self):
+        if self.display == True:    self.display = False
+        else:                       self.display = True
+
 class Bullet:
     def __init__(self, pos, worldPos, dmg, a, t, speed, bulletRange, maxBounces, r):
         self.x, self.y  = pos
@@ -59,7 +67,10 @@ class Bullet:
         if axis == "y": self.angle = -(pi + self.angle)
         self.bounces += 1
 
-class Weapon: pass
+class Weapon:
+    def __init__(self, weapon, wType):
+        self.w      = weapon
+        self.wType  = wType
 
 class Gun:
     def __init__(self, shots, name, rarity, speed, bulletRange, maxBounces, atkSpeed, deviation, dmg, r, slow, fireType, pos=(1, 1), state=1):
@@ -77,6 +88,7 @@ class Gun:
         self.slow       = slow
         self.pos        = pos
         self.state      = state
+        self.rect           = (0.8,0.8)
         self.window     = self.initWindow()
 
     def initWindow(self):
@@ -96,15 +108,12 @@ class Gun:
 
         return w
 
-    def setAlpha(self):
-        self.window.set_alpha(100)
-
-class Screen:
-    def __init__(self, pos, w, h):
-        self.x, self.y  = pos
-        self.w = w
-        self.h = h
-        self.rect = pygame.Surface((w, h), pygame.SRCALPHA)
+class Melee:
+    def __init__(self):
+        #self.w, self.h      = d
+        self.atkSpeed       = 1
+        self.image          = None
+        self.rect           = (0.8, 0.8)#[(15, 15),(15, 15),(15, 15),(15, 15),(15, 15),(15, 15),(15, 15)]
 
 class Room:
     def __init__(self, tileMap):
@@ -122,9 +131,8 @@ class Room:
                 elif row == 0:
                     colour = BROWN
                 else:
-                    colour = GREEN
+                    colour = BLACK
            
                 pygame.draw.rect(w,  colour, (TILE_HEIGHT * k, TILE_WIDTH * j, TILE_WIDTH, TILE_HEIGHT))
 
         return w
-        

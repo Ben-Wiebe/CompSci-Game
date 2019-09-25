@@ -41,7 +41,7 @@ def updateBullets(grid, b, players):
         bullet.age += 1
 
 def shoot(bullets, p, a):
-    g = p.gun
+    g = p.weapon.w
     if p.shotCooldown >= g.atkSpeed:
         for angle in g.shots:
             bullets.append(Bullet((p.x + (p.w / 2), p.y + (p.h / 2)), (p.worldX, p.worldY), g.bulletDmg,
@@ -70,14 +70,20 @@ def AI(players, grid, bullets):
                 else: p.d[3] = 0; p.d[2] = 1
 
             expected = [0, 0]
-            playerAngle = getAngle(p.x, p.y, players[0].x + expected[0], players[0].y + expected[1])
-            shoot(bullets, p, playerAngle)     
-            p.slow = p.gun.slow
+            if (players[0].worldX, players[0].worldY) == (p.worldX, p.worldY):
+                playerAngle = getAngle(p.x, p.y, players[0].x + expected[0], players[0].y + expected[1])
+                shoot(bullets, p, playerAngle)     
+                p.slow = p.weapon.w.slow
             
 def initializeRooms(grid):
     w = grid
     for i, y in enumerate(grid):
         for j, x in enumerate(y):
-            if x == 0:
-                w[i][j] = Room(choice(ROOMS))
+            #if x == 0:
+            w[i][j] = Room(choice(ROOMS))
+
+    for i, y in enumerate(grid):
+        for j, room in enumerate(y):
+            pass
+    
     return w
