@@ -25,9 +25,9 @@ def updateBullets(grid, b, players):
                 return True
         
     for bullet in b:
-        checks  = round(bullet.speed * 10)
-        moveX   = cos(bullet.angle) * (bullet.speed / checks)
-        moveY   = sin(bullet.angle) * (bullet.speed / checks)
+        checks  = 4
+        moveX   = bullet.dx * (bullet.speed / checks)
+        moveY   = bullet.dy * (bullet.speed / checks)
         for i in range(checks):
             movedX = bullet.x + moveX
             movedY = bullet.y + moveY

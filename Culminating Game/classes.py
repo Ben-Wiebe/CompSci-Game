@@ -1,4 +1,4 @@
-from math import pi
+from math import pi, sin, cos
 from settings import *
 import pygame
 pygame.init()
@@ -23,7 +23,7 @@ class Player:
         self.computer       = True
         self.d              = [0, 0, 0, 0]
         self.screen         = None
-        self.direction      = 0
+        self.direction      = "DOWN"
         self.display        = False
         self.spec           = {"lifesteal" : 0, "missingHpHeal" : 0, "revive" : True, "currentHealthDmg" : 0, "missingHpDmg" : 0, "playerHpBonus" : 0}
 
@@ -52,19 +52,24 @@ class Player:
 
 class Bullet:
     def __init__(self, pos, worldPos, dmg, a, t, speed, bulletRange, maxBounces, r):
-        self.x, self.y  = pos
+        self.x, self.y      = pos
         self.worldX, self.worldY                        = worldPos
-        self.dmg        = dmg;          self.speed      = speed
-        self.angle      = a
-        self.team       = t
-        self.r          = r
-        self.age        = 0
-        self.range      = bulletRange
-        self.bounces    = 0;            self.maxBounces = maxBounces
+        self.dmg            = dmg;          self.speed      = speed
+        self.angle          = a
+        self.dx, self.dy    = cos(self.angle), sin(self.angle)
+        self.team           = t
+        self.r              = r
+        self.age            = 0
+        self.range          = bulletRange
+        self.bounces        = 0;            self.maxBounces = maxBounces
 
     def collide(self, axis):
-        if axis == "x": self.angle = -self.angle
-        if axis == "y": self.angle = -(pi + self.angle)
+        if axis == "x":
+            self.angle = -self.angle
+            self.dx, self.dy    = cos(self.angle), sin(self.angle)
+        if axis == "y":
+            self.angle = -(pi + self.angle)
+            self.dx, self.dy    = cos(self.angle), sin(self.angle)
         self.bounces += 1
 
 class Weapon:

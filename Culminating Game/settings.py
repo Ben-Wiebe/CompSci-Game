@@ -4,7 +4,6 @@ FPS_CAP         = 31
 TILE_WIDTH      = 15
 TILE_HEIGHT     = 15
 
-TRANSPARENT     = (  0,   0,   0, 255)
 WHITE           = (255, 255, 255)
 WHITEA          = (255, 255, 255, 100)
 BLACK           = (  0,   0,   0)
@@ -29,10 +28,12 @@ DISPLAY_KEY     = [(0,              0),
                    (0,              HALF_RES[1]),
                    (HALF_RES[0],    HALF_RES[1])]
 
-DIRECTION_KEY   = [ (0,-1) ,
-                    (0, 1) ,
-                    (-1,0) ,
-                    (1 ,0) ]
+DIRECTION_KEY   = { "UP"    :(0,-1) ,
+                    "DOWN"  :(0, 1) ,
+                    "LEFT"  :(-1,0) ,
+                    "RIGHT" :(1 ,0) }
+
+TRIG_ACCURACY   = 90
 
 room1           = [ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] ,
                     [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1] ,

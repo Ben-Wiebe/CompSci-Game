@@ -73,19 +73,23 @@ plasma      = Weapon(Gun([i for i in range(-5, 5)], "Plasma Fire", 0,
 
 #players = [Player(1.2, 1.2, 0, 300), Player(9.5, 9.5, 1, 300), Player(11, 9.5, 2, 300), Player(12.5, 9.5, 3, 300), Player(14, 9.5, 4, 300), Player(15.5, 9.5, 5, 300)]
 players = [Player(1.2, 1.2, 0, 300), Player(2, 2, 1, 300, worldX = 11), Player(3, 3, 1, 300), Player(4, 4, 1, 300)]
-    
+
+##roundTrig = [sin((i / 10)) for i in range(round(20*pi))]
+##trigTable = {}
+
 def draw(grid, tileMapList, players, bullets, seeItems, guns, updated):
     global mapDisplay
     screen.fill(BLACK)
-    bulletOverlays  = {0 : None, 1 : None, 2 : None, 3 : None}
-    for i, player in enumerate(players):
-        bulletOverlays[i].append(pygame.Surface((HALF_RES[0], HALF_RES[1]), pygame.SRCALPHA))
-        
-        for bullet in bullets:
-            if (bullet.worldX, bullet.worldY) == (player.worldX, player.worldY):
-                pygame.draw.circle(bulletOverlay[i],    WHITE, (round(bullet.x *  TILE_WIDTH) + DISPLAY_KEY[i][0],
-                                                        round(bullet.y * TILE_HEIGHT) + DISPLAY_KEY[i][1]),
-                                                        round(bullet.r * TILE_WIDTH))
+##    bulletOverlays  = {0 : pygame.Surface((HALF_RES[0], HALF_RES[1]), pygame.SRCALPHA), 1 : None, 2 : None, 3 : None}
+##    for i,player in enumerate(players):
+##        if (player.worldX, player.worldY) == (players[i].worldX, players[i].worldY):
+##            bulletOverlays[i] = bulletOverlays[0]
+##    
+##    for bullet in bullets:
+##        if (bullet.worldX, bullet.worldY) == (player.worldX, player.worldY):
+##            pygame.draw.circle(bulletOverlay[i],    WHITE, (round(bullet.x *  TILE_WIDTH) + DISPLAY_KEY[i][0],
+##                                                    round(bullet.y * TILE_HEIGHT) + DISPLAY_KEY[i][1]),
+##                                                    round(bullet.r * TILE_WIDTH))
     for i, player in enumerate(players):
         #if updated:
         mapDisplay[i].fill(BLACK)
@@ -103,25 +107,23 @@ def draw(grid, tileMapList, players, bullets, seeItems, guns, updated):
             if (bullet.worldX, bullet.worldY) == (player.worldX, player.worldY):
                 pygame.draw.circle(screen,   WHITE, (round(bullet.x *  TILE_WIDTH) + DISPLAY_KEY[i][0],
                                                      round(bullet.y * TILE_HEIGHT) + DISPLAY_KEY[i][1]),
-                                                     round(bullet.r * TILE_WIDTH) )
-                
+                                                     round(bullet.r * TILE_WIDTH))                
         for p in players:
             if (p.worldX, p.worldY) == (player.worldX, player.worldY):
                 pygame.draw.rect(screen,        WHITE, ((p.x * TILE_WIDTH) + DISPLAY_KEY[i][0],
                                                            (p.y * TILE_HEIGHT) + DISPLAY_KEY[i][1],
-                                                           p.w * TILE_WIDTH, p.h * TILE_HEIGHT) )
+                                                           p.w * TILE_WIDTH, p.h * TILE_HEIGHT))
                 pygame.draw.rect(screen,        RED,   ((p.x + (p.w / 2)) * TILE_WIDTH - (p.w * TILE_WIDTH) + DISPLAY_KEY[i][0],
                                                            p.y * TILE_HEIGHT + TILE_HEIGHT + DISPLAY_KEY[i][1],
-                                                           (p.w * TILE_WIDTH) + (p.w * TILE_WIDTH), 5) )        
+                                                           (p.w * TILE_WIDTH) + (p.w * TILE_WIDTH), 5))        
                 pygame.draw.rect(screen,        GREEN, ((p.x + (p.w / 2)) * TILE_WIDTH - (p.w * TILE_WIDTH) + DISPLAY_KEY[i][0],
                                                            p.y * TILE_HEIGHT + TILE_HEIGHT + DISPLAY_KEY[i][1],
-                                                           max(1, p.health * ((p.w * TILE_WIDTH + (p.w * TILE_WIDTH)) / p.maxHealth)), 5) )
+                                                           max(1, p.health * ((p.w * TILE_WIDTH + (p.w * TILE_WIDTH)) / p.maxHealth)), 5))
 
             if p.weapon.wType == "melee":
                 pygame.draw.rect(screen,        WHITE, ((p.x + DIRECTION_KEY[player.direction][0] * p.w) * TILE_WIDTH,
                                                         (p.y + DIRECTION_KEY[player.direction][1] * p.h) * TILE_HEIGHT,
                                                         p.weapon.w.rect[0] * TILE_WIDTH, p.weapon.w.rect[1] * TILE_HEIGHT), 0)
-
         if player.display == True:
             screen.blit(minimap.image, DISPLAY_KEY[i])
             pygame.draw.rect(screen, WHITE, (player.worldX * TILE_WIDTH, player.worldY * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT))
@@ -233,19 +235,19 @@ def main():
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
-            player.direction = 0
+            player.direction = "UP"
             if not m.tileMap[int((player.y + (player.h / 2)) - (player.h / 2))][int(player.x + (player.w / 2))]: player.y -= player.ms * player.slow
 
         if keys[pygame.K_s]:
-            player.direction = 1
+            player.direction = "DOWN"
             if not m.tileMap[int((player.y + (player.h / 2)) + (player.h / 2))][int(player.x + (player.w / 2))]: player.y += player.ms * player.slow
 
         if keys[pygame.K_a]:
-            player.direction = 2
+            player.direction = "LEFT"
             if not m.tileMap[int(player.y + (player.h / 2))][int((player.x + (player.w / 2)) - (player.w / 2))]: player.x -= player.ms * player.slow
 
         if keys[pygame.K_d]:
-            player.direction = 3
+            player.direction = "RIGHT"
             if not m.tileMap[int(player.y + (player.h / 2))][int((player.x + (player.w / 2)) + (player.w / 2))]: player.x += player.ms * player.slow
 
 
