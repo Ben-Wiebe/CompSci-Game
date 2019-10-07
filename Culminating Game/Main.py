@@ -135,7 +135,7 @@ def draw(grid, tileMapList, players, bullets, seeItems, guns, updated):
 
 def startGame(mapList, tileMapList):
     return initializeRooms(mapList)
-    
+
 def main():
     global TILE_WIDTH, TILE_HEIGHT
     player      = players[0]

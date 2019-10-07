@@ -4,7 +4,7 @@ from settings import *
 from classes import *
 import pygame
 
-def getAngle(x1,y1,x2,y2):
+def getAngle(x1, y1, x2, y2):
     return atan2((y2 - y1), (x2 - x1))
 
 def distance(x1, y1, x2, y2):
