@@ -41,7 +41,7 @@ tileIDs.close()
 maps        = []
 tiles       = []
 for i in contents:
-    # Takes out the :(number) at the end of each tile name, as it is only needed for collision
+    # Separate the :(number) at the end of each tile name, as it is only needed for collision
     a = i.split(":")
     # Adds each tile to a class containing the resized tile along with the Tile's name then appends that to the list of all tiles
     tiles.append(Tile(pygame.transform.scale(pygame.image.load("resources\\" + a[0] + ".png").convert(), (TILE_SIZE, TILE_SIZE)), int(a[1][:-1])))
@@ -55,7 +55,7 @@ tileSelection = [pygame.Rect((RESOLUTION[0] - 200, i * 15),(200, 15)) for i,c in
 doorSelection = [pygame.Rect((RESOLUTION[0] - 200, (i * 15) + 15 * (len(contents) + 2)),(200, 15)) for i,val in enumerate(currentMap.doors)]
 
 def write(text, pos):
-    screen.blit(pygame.font.SysFont("monospace", 12).render(str(text), False, WHITE), pos)
+    screen.blit(pygame.font.SysFont("monospace", 12).render(str(text), True, WHITE), pos)
 
 def draw(currMap, surface):
     screen.fill(BLACK)
@@ -66,12 +66,12 @@ def draw(currMap, surface):
                 pygame.draw.rect(screen, BLACK, (j * TILE_SIZE, k * TILE_SIZE, TILE_SIZE, TILE_SIZE), 2)
 
             for i in selected:
-                pygame.draw.rect(screen , WHITE, (i[0] * TILE_SIZE, i[1] * TILE_SIZE, TILE_SIZE, TILE_SIZE), 2)
+                pygame.draw.rect(screen, WHITE, (i[0] * TILE_SIZE, i[1] * TILE_SIZE, TILE_SIZE, TILE_SIZE), 2)
 
     pygame.draw.rect(screen, GREY, (RESOLUTION[0] - 200, 0, 200, RESOLUTION[1]))
     # All tiles for selection
     for rect in tileSelection:
-        pygame.draw.rect(screen, BLACK, rect, 1)        
+        pygame.draw.rect(screen, BLACK, rect, 1)
     for i,val in enumerate(contents):
         write(val[:-3], (RESOLUTION[0] - 195, i * 15))
     # All door directions for selection
@@ -79,7 +79,8 @@ def draw(currMap, surface):
         pygame.draw.rect(screen, BLACK, rect, 1)
     for i,val in enumerate(currentMap.doors):
         write("{}: {}".format(doorKey[i], val), (RESOLUTION[0] - 195, (i * 15) + (15 * (len(contents) + 2))))# + 15 * (len(contents) + 2)))
-    
+
+    #write("Current Difficulty: {}", ())
     pygame.display.update()
 
 def saveImage():
@@ -87,7 +88,6 @@ def saveImage():
     retry = True
     while retry:
         retry = False
-        path, directories, files = next(os.walk("resources/maps/{}".format(str(currentDifficulty))))
         pygame.image.save(currentMap.image, "resources\maps\{}".format(str(currentDifficulty))\
                           + "\{}.png".format("".join([doorKey[i] if currentMap.doors[i] else "" for i,status in enumerate(currentMap.doors)])))
 
@@ -98,7 +98,7 @@ def saveImage():
     tileIDs.close()
 
 while True:
-    events = pygame.event.get()
+    events = pygame.event.get() 
     for event in events:
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -122,7 +122,6 @@ while True:
                     for i,rect in enumerate(doorSelection):
                         if rect.collidepoint(pos):
                             currentMap.doors[i] = currentMap.toggle(currentMap.doors[i])
-                            
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_b:
@@ -131,23 +130,6 @@ while True:
 
             elif event.key == pygame.K_s:
                 saveImage()
-
-            elif event.key == pygame.K_UP:
-                if selected[1] - 1 >= 0:
-                    if not pygame.key.get_mods() & pygame.KMOD_SHIFT: selected = []#(selected[0], selected[1] - 1)
-                    if not (selected[0], selected[1] - 1) in selected: selected.append((selected[0], selected[1] - 1))
-            elif event.key == pygame.K_DOWN:
-                if selected[1] + 1 < len(currentMap.tileMap[0]):
-                    if not pygame.key.get_mods() & pygame.KMOD_SHIFT: selected = []#(selected[0], selected[1] + 1)
-                    if not (selected[0], selected[1] + 1) in selected: selected.append((selected[0], selected[1] + 1))
-            elif event.key == pygame.K_LEFT:
-                if selected[0] - 1 >= 0:
-                    if not pygame.key.get_mods() & pygame.KMOD_SHIFT: selected = []#(selected[0] - 1, selected[1])
-                    if not (selected[0] - 1, selected[1]) in selected: selected.append((selected[0] - 1, selected[1]))
-            elif event.key == pygame.K_RIGHT:
-                if selected[0] + 1 < len(currentMap.tileMap):
-                    if not pygame.key.get_mods() & pygame.KMOD_SHIFT: selected = []#(selected[0] + 1, selected[1])
-                    if not (selected[0] + 1, selected[1]) in selected: selected.append((selected[0] + 1, selected[1]))
 
             elif event.key == pygame.K_1: currentDifficulty = 1
             elif event.key == pygame.K_2: currentDifficulty = 2

@@ -20,4 +20,4 @@ def generate(width, height, doTimer=False, difficulty=True):
     if doTimer: print("Time Elapsed: {}".format(round(time() - startTime, 20))) # Print the time from the start of the generation and the end
     return mapList
 
-if __name__ == '__main__': print("\n".join(" ".join(" # " if y == 1 else "{:^3}".format(str(y)) for y in x) for x in generate(39, 39, doTimer=True, difficulty=False)))
+if __name__ == '__main__': print("\n".join(" ".join(" # " if y == 1 else "{:^3}".format(str(y)) for y in x) for x in generate(39, 39, doTimer=True, difficulty=True)))

@@ -7,11 +7,8 @@ import pygame
 def getAngle(x1, y1, x2, y2):
     return atan2((y2 - y1), (x2 - x1))
 
-def distance(x1, y1, x2, y2):
-    return ((x2 - x1) ** 2) + ((y2 - y1) ** 2) ** 0.5
-
-def updateBullets(grid, b, players):
-    def playerCollision(bullet, x, y):
+def updateBullets(grid, b, players, enemies):
+    def entityCollision(bullet, x, y):
         for player in players:
             hitbox = pygame.Rect((player.x * TILE_WIDTH, player.y * TILE_HEIGHT, player.w * TILE_WIDTH, player.h * TILE_HEIGHT))
             #if hitbox.collidepoint((x * TILE_WIDTH, y * TILE_HEIGHT)) and bullet.team != player.team:
@@ -21,7 +18,19 @@ def updateBullets(grid, b, players):
                 player.health -= bullet.dmg
                 players[bullet.team].onHit(player, bullet)
                 if player.health <= 0:
+                    player.health = 0
                     if not player.onDeath(): players.remove(player)
+                return True
+            
+        for enemy in enemies:
+            hitbox = pygame.Rect((enemy.x * TILE_WIDTH, enemy.y * TILE_HEIGHT, enemy.w * TILE_WIDTH, enemy.h * TILE_HEIGHT))
+            #if hitbox.collidepoint((x * TILE_WIDTH, y * TILE_HEIGHT)) and bullet.team != player.team:
+            if hitbox.colliderect(((x - bullet.r) * TILE_WIDTH, (y - bullet.r) * TILE_HEIGHT, bullet.r * 2 * TILE_WIDTH, bullet.r * 2 * TILE_HEIGHT)) \
+                and (bullet.team != enemy.team) and ((bullet.worldX, bullet.worldY) == (enemy.worldX, enemy.worldY)):
+                b.remove(bullet)
+                enemy.health -= bullet.dmg
+                if enemy.health <= 0:
+                    enemies.remove(enemy)
                 return True
         
     for bullet in b:
@@ -31,12 +40,12 @@ def updateBullets(grid, b, players):
         for i in range(checks):
             movedX = bullet.x + moveX
             movedY = bullet.y + moveY
-            if playerCollision(bullet, movedX, movedY): break
+            if entityCollision(bullet, movedX, movedY): break
             if bullet.age > bullet.range: b.remove(bullet); break
             if bullet.bounces > bullet.maxBounces: b.remove(bullet); break
-            if grid[bullet.worldX][bullet.worldY].tileMap[int(bullet.y)][int(movedX)] != 1: bullet.x = movedX
+            if grid[bullet.worldX][bullet.worldY].collisionMap[int(bullet.y)][int(movedX)] != 1: bullet.x = movedX
             else:                                                                           bullet.collide('y'); break
-            if grid[bullet.worldX][bullet.worldY].tileMap[int(movedY)][int(bullet.x)] != 1: bullet.y = movedY
+            if grid[bullet.worldX][bullet.worldY].collisionMap[int(movedY)][int(bullet.x)] != 1: bullet.y = movedY
             else:                                                                           bullet.collide('x'); break
         bullet.age += 1
 
@@ -80,7 +89,8 @@ def initializeRooms(grid):
     for i, y in enumerate(grid):
         for j, x in enumerate(y):
             #if x == 0:
-            w[i][j] = Room(choice(ROOMS))
+            room = randint(0,len(ROOM_MAP)-1)
+            w[i][j] = Room(ROOM_MAP[room], ROOM_COLLISION[room])
 
     for i, y in enumerate(grid):
         for j, room in enumerate(y):

@@ -2,11 +2,15 @@ floors\floor_brick_plain:0
 floors\floor_brick_mossy:0
 floors\floor_brick_spike1:0
 floors\floor_brick_spike2:0
-floors\floor_brick_spike3:0
+floors\floor_brick_spike3:3
 floors\floor_lava1:3
 floors\floor_lava2:3
 floors\floor_water1:2
 floors\floor_water2:2
+walls\wall_plain:1
+walls\wall_arrow:1
+walls\wall_mossy:1
+walls\wall_torch:1
 doors\ns_door1a:1
 doors\ns_door1b:1
 doors\ns_door1c:1
@@ -19,7 +23,3 @@ doors\ns_door3a:1
 doors\ns_door3b:1
 doors\ns_door3c:1
 doors\ns_door3d:1
-walls\wall_arrow:1
-walls\wall_mossy:1
-walls\wall_plain:1
-walls\wall_torch:1
