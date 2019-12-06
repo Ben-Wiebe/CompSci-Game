@@ -25,7 +25,7 @@ def loadingBackground():
         for k, row in enumerate(column):
             if int(row) == 1:   c = GREY
             else:               c = BROWN
-            pygame.draw.rect(background, (c), (j * TILE_WIDTH, k * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT))
+            pygame.draw.rect(background, c, (j * TILE_WIDTH, k * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT))
     return background
 
 # Moves all bullets and checks if they collide with walls and players/enemies/bosses

@@ -72,7 +72,7 @@ def floodfill(grid):
                     if not abs(k) == abs(l):
                         if current[0]+k >= 0 and current[0]+k<len(grid) and current[1]+l >= 0 and current[1]+l < len(grid[0]): #if we're not out of bounds
                             if copy_grid[current[0]+k][current[1]+l]==0: #if it's an empty space
-                                copy_grid[current[0]+k][current[1]+l]=2 #mark visited
+                                copy_grid[current[0]+k][current[1]+l]=23 #mark visited
                                 open_count += 1
                                 unvisited.append([current[0]+k, current[1]+l])
         percentage = open_count*100/(len(grid)*len(grid[0]))        
@@ -122,6 +122,30 @@ def transform(grid, directions): # Takes the basic map, makes walls only surroun
                 
     tileMap         = [x[:] for x in grid]
     collisionMap    = [x[:] for x in grid]
+
+    fluidMap        = [[0 for x in y] for y in grid]
+
+    for i in range(random.randint(4,7)):
+        if random.randint(0, 100) > 60: fluidMap[random.randint(2, len(grid)-4)][random.randint(2, len(grid[0])-4)] = 7
+        else:                           fluidMap[random.randint(2, len(grid)-4)][random.randint(2, len(grid[0])-4)] = 8
+
+    
+    for i in range(12):
+        for i, val in enumerate(fluidMap):
+            for j, cell in enumerate(val):
+                if cell in [7, 8]:
+                    count = 0
+                    for k in range(-1,2):
+                        for l in range(-1,2):
+                            if i + k > len(fluidMap)-1 or j + l > len(fluidMap[0])-1 or i + k < 0 or j + l < 0: count += 1
+                            else:
+                                if fluidMap[i+k][j+l] == 1: count += 1
+                    if random.randint(0, 4):
+                        
+                        if random.randint(0, 100) > 60: fluidMap[i][j] = 7
+                        else:                           fluidMap[i][j] = 8
+
+    printGrid(fluidMap, chr(9608) + chr(9608), "  ")
     for i, val in enumerate(grid):
         for j, cell in enumerate(val):
             if cell in [20,21,22,23]: tileMap[i][j] = cell; collisionMap[i][j] = 0
@@ -152,13 +176,10 @@ def generate(width, height, directions):
         grid = automataIteration(grid, 0)
 
     grid, percentage = floodfill(grid)
-    if percentage<50:
+    if percentage < 50:
         return generate(width, height, directions)
     else:
         return transform(grid, directions)
-        #printGrid(grid, chr(9608) + chr(9608), "  ")
-    #time.sleep(1)
-    
 
 if __name__ == "__main__":
     printGrid(generate(45,30, ["UP", "DOWN", "LEFT", "RIGHT"])[0], chr(9608) + chr(9608), "  ")

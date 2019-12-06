@@ -5,6 +5,9 @@ from settings import *
 import pygame
 pygame.init()
 
+bulletImages = {"leaf"  : [pygame.transform.scale(pygame.image.load(r"resources\bullets\leaf.png"), (round(TILE_WIDTH / 1.5), round(TILE_HEIGHT / 1.5))),
+                           pygame.transform.scale(pygame.image.load(r"resources\bullets\leaf.png"), (round(TILE_WIDTH / 1.5), round(TILE_HEIGHT / 1.5)))] ,
+                ""      : [] }
 class Player:# Player class
     players = 0
     def __init__(self, x, y, team, maxHealth, worldX = 1, worldY = 1):
@@ -39,7 +42,6 @@ class Player:# Player class
                                 "LEFT"  : [pygame.transform.scale(pygame.image.load(r"resources\player\{}left{}".format("",i) + ".png"),
                                                                   (int(TILE_WIDTH * self.w), int(TILE_HEIGHT * self.h))) for i in range(1,5)] }
 
-    def onHit(self, enemy, bullet): pass
 ##        # Lifesteal
 ##        self.health += bullet.dmg * (self.spec["lifesteal"] / 100)
 ##        if self.health > self.maxHealth: self.health = self.maxHealth
@@ -151,6 +153,7 @@ class Boss:
         self.attacking      = False
         self.direction      = "RIGHT"
         self.attackCount    = 0
+        self.attacks        = 0
 
 class Hastur(Boss):
     #Inherits the boss class for our first boss
@@ -172,50 +175,48 @@ class Hastur(Boss):
                             "LEFT"  : [pygame.transform.scale(pygame.image.load(r"resources\bosses\hastur\attack_left{}".format(i) + ".png"),
                                                               (int(TILE_WIDTH * 8), int(TILE_HEIGHT * 8))) for i in range(1,4)] }
 
-    def AI(self, mapList, bullets, players, activeFrames):
-        targeted = False
+    def AI(self, mapList, bullets, players, enemies, activeFrames):
         grid = mapList.collisionMap
-        for p in players:
-            if not targeted and not self.attacking:
-                if (p.worldX, p.worldY) == (self.worldX, self.worldY):
-                    if round(activeFrames, 2) % 10 == 0:
-                        # 8 directional shots around hastur
-                        for angle in [pi / 4, pi / 2, (3 * pi) / 4, pi, (5 * pi) / 4, (3 * pi) / 2, (7 * pi) / 4, 2 * pi]:
-                            bullets.append(Bullet((self.x + (self.w / 2), self.y + (self.h / 2)), (self.worldX, self.worldY), 25,
-                                              (angle + atan2((p.y - self.y), (p.x - self.x)) * (pi / 180)),
-                                              self.team, 0.12, 250, 3, 0.4))
-                    targeted = True
-                    self.moveCount += 0.2
-                    angle = atan2((self.y - p.y), (self.x - p.x))
-                    if p.y < self.y + (self.h / 2):
-                        self.direction = "UP"
-                        if grid[int(self.x + (self.w / 2))][int((self.y + (self.h / 2)) - (self.h / 2))] != 1:
-                            self.y -= self.ms * self.slow
+        sortedPlayers = sorted(players, key=lambda p: ((self.x - p.x) ** 2) + ((self.y - p.y) ** 2), reverse=False)
+        for p in sortedPlayers:
+            if (p.worldX, p.worldY) == (self.worldX, self.worldY): break
+        if not self.attacking:
+            if (p.worldX, p.worldY) == (self.worldX, self.worldY):
+                if round(activeFrames, 2) % 10 in [0, 1]:
+                    # 8 directional shots around hastur
+                    for angle in [pi / 4, pi / 2, (3 * pi) / 4, pi, (5 * pi) / 4, (3 * pi) / 2, (7 * pi) / 4, 2 * pi]:
+                        bullets.append(Bullet((self.x + (self.w / 2), self.y + (self.h / 2)), (self.worldX, self.worldY), 25,
+                                          (angle + atan2((p.y - self.y), (p.x - self.x)) * (pi / 180)),
+                                          self.team, 0.12, 100, 3, 0.4))
+                self.moveCount += 0.2
+                angle = atan2((self.y - p.y), (self.x - p.x))
+                if p.y < self.y + (self.h / 2):
+                    self.direction = "UP"
+                    if grid[int(self.x + (self.w / 2))][int((self.y + (self.h / 2)) - (self.h / 2))] != 1:
+                        self.y -= self.ms * self.slow
 
-                    elif p.y > self.y + (self.h / 2):
-                        self.direction = "DOWN"
-                        if grid[int(self.x + (self.w / 2))][int((self.y + (self.h / 2)) + (self.h / 2))] != 1:
-                            self.y += self.ms * self.slow
+                elif p.y > self.y + (self.h / 2):
+                    self.direction = "DOWN"
+                    if grid[int(self.x + (self.w / 2))][int((self.y + (self.h / 2)) + (self.h / 2))] != 1:
+                        self.y += self.ms * self.slow
 
-                    if p.x < self.x + (self.w / 2):
-                        self.direction = "LEFT"
-                        if grid[int((self.x + (self.w / 2)) - (self.w / 2))][int(self.y + (self.h / 2))] != 1:
-                            self.x -= self.ms * self.slow
+                if p.x < self.x + (self.w / 2):
+                    self.direction = "LEFT"
+                    if grid[int((self.x + (self.w / 2)) - (self.w / 2))][int(self.y + (self.h / 2))] != 1:
+                        self.x -= self.ms * self.slow
 
-                    elif p.x > self.x + (self.w / 2):
-                        self.direction = "RIGHT"
-                        if grid[int((self.x + (self.w / 2)) + (self.w / 2))][int(self.y + (self.h / 2))] != 1:
-                            self.x += self.ms * self.slow
-                            
-                    if ((self.x + (self.w / 2) - p.x) ** 2) + ((self.y + (self.h / 2) - p.y) ** 2) < 20:
-                        self.attacking = True
-                        self.attackCount = 0
-                        mapList.meleeRects.append(AttackRect((self.x + (self.w // 2) * DIRECTION_KEY[self.direction][0]) * TILE_WIDTH,
-                                                             (self.y + (self.h // 2) * DIRECTION_KEY[self.direction][1]) * TILE_HEIGHT,
-                                                             self.worldX, self.worldY,
-                                                             self.w * 0.8 * TILE_WIDTH, self.h * TILE_HEIGHT, 20, range(25, 40), 40, ORANGE))
-
-                else: targeted = False
+                elif p.x > self.x + (self.w / 2):
+                    self.direction = "RIGHT"
+                    if grid[int((self.x + (self.w / 2)) + (self.w / 2))][int(self.y + (self.h / 2))] != 1:
+                        self.x += self.ms * self.slow
+                        
+                if ((self.x + (self.w / 2) - p.x) ** 2) + ((self.y + (self.h / 2) - p.y) ** 2) < 20:
+                    self.attacking = True
+                    self.attackCount = 0
+                    mapList.meleeRects.append(AttackRect((self.x + (self.w // 2) * DIRECTION_KEY[self.direction][0]) * TILE_WIDTH,
+                                                         (self.y + (self.h // 2) * DIRECTION_KEY[self.direction][1]) * TILE_HEIGHT,
+                                                         self.worldX, self.worldY,
+                                                         self.w * 0.8 * TILE_WIDTH, self.h * TILE_HEIGHT, self.team, 20, range(25, 40), 40, ORANGE))
 
         if self.attacking:
             self.attackCount += 0.05
@@ -224,24 +225,25 @@ class Hastur(Boss):
     
 class Enemy:
     # General enemy class
-    def __init__(self, x, y, worldX, worldY, maxHealth, ms, armour, damage, gun=None):
-        self.x = x; self.worldX = worldX
-        self.y = y; self.worldY = worldY
-        self.attacking = False
-        self.idling    = False
-        self.direction = "RIGHT"
-        self.attackCount = 0
-        self.ms = ms
-        self.w = 2
-        self.h = 2
-        self.weapon = gun
-        self.health = maxHealth
-        self.maxHealth = maxHealth
-        self.damage = damage
-        self.slow = 1
-        self.team = 10
-        self.moveCount = 0
-        self.lastMove = [1, 1]
+    def __init__(self, maxHealth, ms, armour, damage, gun=None):
+        self.x = 0; self.worldX = 0
+        self.y = 0; self.worldY = 0
+        self.attacking          = False
+        self.idling             = False
+        self.direction          = "RIGHT"
+        self.attackCount        = 0
+        self.ms                 = ms
+        self.w                  = 2
+        self.h                  = 2
+        self.weapon             = gun
+        self.health             = maxHealth
+        self.maxHealth          = maxHealth
+        self.damage             = damage
+        self.slow               = 1
+        self.team               = 10
+        self.moveCount          = 0
+        self.lastMove           = [1, 1]
+        self.attacks            = 0
 
     def onDeath(self): pass
 
@@ -265,38 +267,37 @@ class Voidling(Enemy):
                             "DOWN"  : [pygame.transform.scale(pygame.image.load(r"resources\enemies\voidling\attackdown{}".format(i) + ".png"),
                                                               (int(TILE_WIDTH * 2), int(TILE_HEIGHT * 2))) for i in range(1,7)] }
 
-    def AI(self, mapList, bullets, players):
+    def AI(self, mapList, bullets, players, enemies, activeFrames):
         def closestKey(dictionary, val): return dictionary.get(val, dictionary[min(dictionary.keys(), key=lambda k: abs(k-val))])
-        targeted = False
         grid = mapList.collisionMap
-        for p in players:
-            if not targeted and not self.attacking:
-                if (p.worldX, p.worldY) == (self.worldX, self.worldY):
-                    targeted = True
-                    self.moveCount += 0.2
-                    angle = atan2((p.y - self.y), (p.x - self.x)) * (180 / pi)
-                    angle %= 360
-                    self.direction = closestKey(DIRECTIONS, angle)
-                    angle *= (pi / 180)
-                    moveX = cos(angle) * self.ms * self.slow
-                    moveY = sin(angle) * self.ms * self.slow
-                    if grid[int((self.x + (self.w / 2)) + moveX)][int(self.y + (self.h / 2))] != 1: self.x += moveX
-                    if grid[int(self.x + (self.w / 2))][int((self.y + (self.h / 2)) + moveY)] != 1: self.y += moveY
+        sortedPlayers = sorted(players, key=lambda p: ((self.x - p.x) ** 2) + ((self.y - p.y) ** 2), reverse=False)
+        for p in sortedPlayers:
+            if (p.worldX, p.worldY) == (self.worldX, self.worldY): break
+        if not self.attacking:
+            if (p.worldX, p.worldY) == (self.worldX, self.worldY):
+                self.moveCount += 0.2
+                angle = atan2((p.y - self.y), (p.x - self.x)) * (180 / pi)
+                angle %= 360
+                self.direction = closestKey(DIRECTIONS, angle)
+                angle *= (pi / 180)
+                moveX = cos(angle) * self.ms * self.slow
+                moveY = sin(angle) * self.ms * self.slow
+                if grid[int((self.x + (self.w / 2)) + moveX)][int(self.y + (self.h / 2))] != 1: self.x += moveX
+                if grid[int(self.x + (self.w / 2))][int((self.y + (self.h / 2)) + moveY)] != 1: self.y += moveY
 
-                    if ((self.x - p.x) ** 2) + ((self.y - p.y) ** 2) < 3:
-                        self.attacking = True
-                        self.attackCount = 0
-                        if self.direction in "LEFT RIGHT":
-                            mapList.meleeRects.append(AttackRect((self.x + (self.w // 2) * DIRECTION_KEY[self.direction][0]) * TILE_WIDTH,
-                                                                 (self.y + (self.h // 2) * DIRECTION_KEY[self.direction][1]) * TILE_HEIGHT,
-                                                                 self.worldX, self.worldY,
-                                                                 self.w * 0.8 * TILE_WIDTH, self.h * 0.8 * TILE_HEIGHT, 40, range(15, 25), 25, PURPLE))
-                        elif self.direction in "UP DOWN":
-                            mapList.meleeRects.append(AttackRect(self.x * TILE_WIDTH,
-                                                                 (self.y + ((self.h // 2) * DIRECTION_KEY[self.direction][1])) * TILE_HEIGHT,
-                                                                 self.worldX, self.worldY,
-                                                                 self.w * 0.8 * TILE_WIDTH, self.h * TILE_HEIGHT, 40, range(15, 25), 25, PURPLE))
-                else: targeted = False
+                if ((self.x - p.x) ** 2) + ((self.y - p.y) ** 2) < 4:
+                    self.attacking = True
+                    self.attackCount = 0
+                    if self.direction in "LEFT RIGHT":
+                        mapList.meleeRects.append(AttackRect((self.x + (self.w // 2) * DIRECTION_KEY[self.direction][0]) * TILE_WIDTH,
+                                                             (self.y + (self.h // 2) * DIRECTION_KEY[self.direction][1]) * TILE_HEIGHT,
+                                                             self.worldX, self.worldY,
+                                                             self.w * 0.8 * TILE_WIDTH, self.h * 0.8 * TILE_HEIGHT, self.team, 40, range(15, 25), 25, PURPLE))
+                    elif self.direction in "UP DOWN":
+                        mapList.meleeRects.append(AttackRect(self.x * TILE_WIDTH,
+                                                             (self.y + ((self.h // 2) * DIRECTION_KEY[self.direction][1])) * TILE_HEIGHT,
+                                                             self.worldX, self.worldY,
+                                                             self.w * 0.8 * TILE_WIDTH, self.h * TILE_HEIGHT, self.team, 40, range(15, 25), 25, PURPLE))
 
         if self.attacking:
             self.attackCount += 0.25
@@ -322,46 +323,105 @@ class Goblin(Enemy):
                             "DOWN"  : [pygame.transform.scale(pygame.image.load(r"resources\enemies\goblin\attackdown{}".format(i) + ".png"),
                                                               (int(TILE_WIDTH * 2), int(TILE_HEIGHT * 2))) for i in range(1,3)] }
 
-    def AI(self, mapList, bullets, players):
+    def AI(self, mapList, bullets, players, enemies, activeFrames):
         def closestKey(dictionary, val): return dictionary.get(val, dictionary[min(dictionary.keys(), key=lambda k: abs(k-val))])
-        targeted = False
         grid = mapList.collisionMap
-        for p in players:
-            if not targeted and not self.attacking:
-                if (p.worldX, p.worldY) == (self.worldX, self.worldY):
-                    targeted = True
-                    self.moveCount += 0.2
-                    angle = atan2((p.y - self.y), (p.x - self.x)) * (180 / pi)
-                    angle %= 360
-                    self.direction = closestKey(DIRECTIONS, angle)
-                    angle *= (pi / 180)
-                    moveX = cos(angle) * self.ms * self.slow
-                    moveY = sin(angle) * self.ms * self.slow
-                    if grid[int((self.x + (self.w / 2) + ((self.w / 2) * DIRECTION_KEY[self.direction][0])) + moveX)] \
-                       [int(self.y + (self.h / 2))] != 1: self.x += moveX
-                    if grid[int(self.x + (self.w / 2))] \
-                       [int((self.y + (self.h / 2) + ((self.h / 2) * DIRECTION_KEY[self.direction][1])) + moveY)] != 1: self.y += moveY
+        sortedPlayers = sorted(players, key=lambda p: ((self.x - p.x) ** 2) + ((self.y - p.y) ** 2), reverse=False)
+        for p in sortedPlayers:
+            if (p.worldX, p.worldY) == (self.worldX, self.worldY): break
+        if not self.attacking:
+            if (p.worldX, p.worldY) == (self.worldX, self.worldY):
+                self.moveCount += 0.2
+                angle = atan2((p.y - self.y), (p.x - self.x)) * (180 / pi)
+                angle %= 360
+                self.direction = closestKey(DIRECTIONS, angle)
+                angle *= (pi / 180)
+                moveX = cos(angle) * self.ms * self.slow
+                moveY = sin(angle) * self.ms * self.slow
+                if grid[int((self.x + (self.w / 2) + ((self.w / 2) * DIRECTION_KEY[self.direction][0])) + moveX)] \
+                   [int(self.y + (self.h / 2))] != 1: self.x += moveX
+                if grid[int(self.x + (self.w / 2))] \
+                   [int((self.y + (self.h / 2) + ((self.h / 2) * DIRECTION_KEY[self.direction][1])) + moveY)] != 1: self.y += moveY
 
-                    if ((self.x - p.x) ** 2) + ((self.y - p.y) ** 2) < 3:
-                        self.attacking = True
-                        self.attackCount = 0
-                        if self.direction in "LEFT RIGHT":
-                            mapList.meleeRects.append(AttackRect((self.x + (self.w // 2) * DIRECTION_KEY[self.direction][0]) * TILE_WIDTH,
-                                                                 (self.y + (self.h // 2) * DIRECTION_KEY[self.direction][1]) * TILE_HEIGHT,
-                                                                 self.worldX, self.worldY,
-                                                                 self.w * 0.8 * TILE_WIDTH, self.h * 0.8 * TILE_HEIGHT, 15, range(15, 20), 20, GREEN))
-                        elif self.direction in "UP DOWN":
-                            mapList.meleeRects.append(AttackRect(self.x * TILE_WIDTH,
-                                                                 (self.y + ((self.h // 2) * DIRECTION_KEY[self.direction][1])) * TILE_HEIGHT,
-                                                                 self.worldX, self.worldY,
-                                                                 self.w * 0.8 * TILE_WIDTH, self.h * TILE_HEIGHT, 15, range(15, 20), 20, GREEN))
-                else: targeted = False
+                if ((self.x - p.x) ** 2) + ((self.y - p.y) ** 2) < 4.5:
+                    self.attacking = True
+                    self.attackCount = 0
+                    if self.direction in "LEFT RIGHT":
+                        mapList.meleeRects.append(AttackRect((self.x + (self.w // 2) * DIRECTION_KEY[self.direction][0]) * TILE_WIDTH,
+                                                             (self.y + (self.h // 2) * DIRECTION_KEY[self.direction][1]) * TILE_HEIGHT,
+                                                             self.worldX, self.worldY,
+                                                             self.w * 0.8 * TILE_WIDTH, self.h * 0.8 * TILE_HEIGHT, self.team, 15, range(15, 20), 20, GREEN))
+                    elif self.direction in "UP DOWN":
+                        mapList.meleeRects.append(AttackRect(self.x * TILE_WIDTH,
+                                                             (self.y + ((self.h // 2) * DIRECTION_KEY[self.direction][1])) * TILE_HEIGHT,
+                                                             self.worldX, self.worldY,
+                                                             self.w * 0.8 * TILE_WIDTH, self.h * TILE_HEIGHT, self.team, 15, range(15, 20), 20, GREEN))
 
         if self.attacking:
             self.attackCount += 0.1
             if self.attackCount >= 3:
                 self.attacking = False
-                
+
+class WillOTheWisp(Enemy):
+    images              = { "RIGHT" : [pygame.transform.scale(pygame.image.load(r"resources\enemies\willothewisp\right{}".format(i) + ".png"),
+                                                              (int(TILE_WIDTH * 1), int(TILE_HEIGHT * 1.5))) for i in range(1,3)] ,
+                            "LEFT"  : [pygame.transform.scale(pygame.image.load(r"resources\enemies\willothewisp\left{}".format(i) + ".png"),
+                                                              (int(TILE_WIDTH * 1), int(TILE_HEIGHT * 1.5))) for i in range(1,3)] ,
+                            "UP"    : [pygame.transform.scale(pygame.image.load(r"resources\enemies\willothewisp\right{}".format(i) + ".png"),
+                                                              (int(TILE_WIDTH * 1), int(TILE_HEIGHT * 1.5))) for i in range(1,3)] ,
+                            "DOWN"  : [pygame.transform.scale(pygame.image.load(r"resources\enemies\willothewisp\left{}".format(i) + ".png"),
+                                                              (int(TILE_WIDTH * 1), int(TILE_HEIGHT * 1.5))) for i in range(1,3)] }
+
+    attackingImages     = { "RIGHT" : [pygame.transform.scale(pygame.image.load(r"resources\enemies\willothewisp\attackright{}".format(i) + ".png"),
+                                                              (int(TILE_WIDTH * 1), int(TILE_HEIGHT * 1.5))) for i in range(1,3)] ,
+                            "LEFT"  : [pygame.transform.scale(pygame.image.load(r"resources\enemies\willothewisp\attackleft{}".format(i) + ".png"),
+                                                              (int(TILE_WIDTH * 1), int(TILE_HEIGHT * 1.5))) for i in range(1,3)] ,
+                            "UP"    : [pygame.transform.scale(pygame.image.load(r"resources\enemies\willothewisp\attackup{}".format(i) + ".png"),
+                                                              (int(TILE_WIDTH * 1), int(TILE_HEIGHT * 1.5))) for i in range(1,3)] ,
+                            "DOWN"  : [pygame.transform.scale(pygame.image.load(r"resources\enemies\willothewisp\attackdown{}".format(i) + ".png"),
+                                                              (int(TILE_WIDTH * 1), int(TILE_HEIGHT * 1.5))) for i in range(1,3)] }
+
+    def AI(self, mapList, bullets, players, enemies, activeFrames):
+        self.w = 1
+        self.h = 2
+        def closestKey(dictionary, val): return dictionary.get(val, dictionary[min(dictionary.keys(), key=lambda k: abs(k-val))])
+        grid = mapList.collisionMap
+        sortedPlayers = sorted(players, key=lambda p: ((self.x - p.x) ** 2) + ((self.y - p.y) ** 2), reverse=False)
+        for p in sortedPlayers:
+            if (p.worldX, p.worldY) == (self.worldX, self.worldY): break
+        if not self.attacking:
+            if (p.worldX, p.worldY) == (self.worldX, self.worldY):
+                self.moveCount += 0.5
+                angle = atan2((p.y - self.y), (p.x - self.x)) * (180 / pi)
+                angle %= 360
+                self.direction = closestKey(DIRECTIONS, angle)
+                angle *= (pi / 180)
+                moveX = cos(angle) * self.ms * self.slow
+                moveY = sin(angle) * self.ms * self.slow
+                if grid[int((self.x + (self.w / 2) + ((self.w / 2) * DIRECTION_KEY[self.direction][0])) + moveX)] \
+                   [int(self.y + (self.h / 2))] != 1: self.x += moveX
+                if grid[int(self.x + (self.w / 2))] \
+                   [int((self.y + (self.h / 2) + ((self.h / 2) * DIRECTION_KEY[self.direction][1])) + moveY)] != 1: self.y += moveY
+
+                if ((self.x - p.x) ** 2) + ((self.y - p.y) ** 2) < 2.5:
+                    self.attacking = True
+                    self.attackCount = 0
+                    if self.direction in "LEFT RIGHT":
+                        mapList.meleeRects.append(AttackRect((self.x + (self.w * 0.8) * DIRECTION_KEY[self.direction][0]) * TILE_WIDTH,
+                                                             (self.y + (self.h * 0.9) * DIRECTION_KEY[self.direction][1]) * TILE_HEIGHT,
+                                                             self.worldX, self.worldY,
+                                                             self.w * 0.8 * TILE_WIDTH, self.h * 0.5 * TILE_HEIGHT, self.team, 15, range(15, 20), 20, WHITE))
+                    elif self.direction in "UP DOWN":
+                        mapList.meleeRects.append(AttackRect(self.x * TILE_WIDTH,
+                                                             (self.y + ((self.h * 0.5) * DIRECTION_KEY[self.direction][1])) * TILE_HEIGHT,
+                                                             self.worldX, self.worldY,
+                                                             self.w * 0.8 * TILE_WIDTH, self.h * 0.6 * TILE_HEIGHT, self.team, 15, range(15, 20), 20, WHITE))
+
+        if self.attacking:
+            self.attackCount += 0.1
+            if self.attackCount >= 3:
+                self.attacking = False
+
 class Saladmander(Enemy):
     # This guy shots healing shots for the players
     images              = { "RIGHT" : [pygame.transform.scale(pygame.image.load(r"resources\enemies\saladmander\right{}".format(i) + ".png"),
@@ -373,7 +433,7 @@ class Saladmander(Enemy):
                             "DOWN"  : [pygame.transform.scale(pygame.image.load(r"resources\enemies\saladmander\down{}".format(i) + ".png"),
                                                               (int(TILE_WIDTH * 2), int(TILE_HEIGHT * 2))) for i in range(1,3)] }
 
-    def AI(self, mapList, bullets, players):
+    def AI(self, mapList, bullets, players, enemies, activeFrames):
         self.attackCount += 1
         if self.attackCount >= 30:
             self.attackCount = 0
@@ -383,30 +443,27 @@ class Saladmander(Enemy):
                                       (randint(0, 360) * (180 / pi)) + ((angle + randint(-g.deviation, g.deviation)) * (pi / 180)),
                                       self.team, g.speed, g.range, g.maxBounces, g.r))
         grid = mapList.tileMap
-        for p in players:
-            if (p.worldX, p.worldY) == (self.worldX, self.worldY):
-                targeted = True
-                self.lastMove = [randint(-1, 2) if randint(0, 100) >= 95 else i for i in self.lastMove]
-                self.moveCount += 0.2
-                if self.lastMove[1] == 1:
-                    self.direction = "UP"
-                    if grid[int(self.x + (self.w / 2))][int((self.y + (self.h / 2)) - (self.h / 2))] == 0:
-                        self.y -= self.ms * self.slow
+        self.lastMove = [randint(-1, 2) if randint(0, 100) >= 95 else i for i in self.lastMove]
+        self.moveCount += 0.2
+        if self.lastMove[1] == 1:
+            self.direction = "UP"
+            if grid[int(self.x + (self.w / 2))][int((self.y + (self.h / 2)) - (self.h / 2))] == 0:
+                self.y -= self.ms * self.slow
 
-                elif self.lastMove[1] == -1:
-                    self.direction = "DOWN"
-                    if grid[int(self.x + (self.w / 2))][int((self.y + (self.h / 2)) + (self.h / 2))] == 0:
-                        self.y += self.ms * self.slow
+        elif self.lastMove[1] == -1:
+            self.direction = "DOWN"
+            if grid[int(self.x + (self.w / 2))][int((self.y + (self.h / 2)) + (self.h / 2))] == 0:
+                self.y += self.ms * self.slow
 
-                if self.lastMove[0] == -1:
-                    self.direction = "LEFT"
-                    if grid[int((self.x + (self.w / 2)) - (self.w / 2))][int(self.y + (self.h / 2))] == 0:
-                        self.x -= self.ms * self.slow
+        if self.lastMove[0] == -1:
+            self.direction = "LEFT"
+            if grid[int((self.x + (self.w / 2)) - (self.w / 2))][int(self.y + (self.h / 2))] == 0:
+                self.x -= self.ms * self.slow
 
-                elif self.lastMove[0] == 1:
-                    self.direction = "RIGHT"
-                    if grid[int((self.x + (self.w / 2)) + (self.w / 2))][int(self.y + (self.h / 2))] == 0:
-                        self.x += self.ms * self.slow
+        elif self.lastMove[0] == 1:
+            self.direction = "RIGHT"
+            if grid[int((self.x + (self.w / 2)) + (self.w / 2))][int(self.y + (self.h / 2))] == 0:
+                self.x += self.ms * self.slow
 
 class Bullet:
     # Bullet class
@@ -421,7 +478,7 @@ class Bullet:
         self.age            = 0
         self.range          = bulletRange
         self.bounces        = 0;            self.maxBounces = maxBounces
-        #self.image          = pygame.image.load(r"resources\enemies\voidling\right1.png")
+        self.images         = bulletImages["leaf"]
 
     # Call upon bullet collision with a wall
     def collide(self, axis):
@@ -506,15 +563,18 @@ class Minimap:
             for k, row in enumerate(column):
                 if row == 1:
                     pygame.draw.rect(image, BLACKA, (j * TILE_WIDTH, k * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT))
-                else:
+                elif row == 0:
                     pygame.draw.rect(image, BROWNA, (j * TILE_WIDTH, k * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT))
+                else:
+                    pygame.draw.rect(image, DIFFICULTY_COLOURS[row.difficulty], (j * TILE_WIDTH, k * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT))
 
         return image
 
 # Shows melee attacks and checks for their collision with the player
 class AttackRect:
-    def __init__(self, x, y, wx, wy, w, h, d, af, l, c):
+    def __init__(self, x, y, wx, wy, w, h, team, d, af, l, c):
         self.rect           = pygame.Rect((x, y, w, h))
+        self.team = team
         self.worldX, self.worldY = wx, wy
         self.damage         = d
         self.activeFrames   = af
@@ -528,20 +588,20 @@ class AttackRect:
         self.frames += 1
         collisionIndex = self.rect.collidelist([pygame.Rect((p.x * TILE_WIDTH, p.y * TILE_HEIGHT, p.w * TILE_HEIGHT, p.h * TILE_WIDTH)) for p in players])
         if self.frames in self.activeFrames:
-            if collisionIndex != -1 and not collisionIndex in self.hit:
+            if collisionIndex != -1 and not collisionIndex in self.hit and self.team != players[collisionIndex].team:
                 players[collisionIndex].health -= self.damage
                 self.hit.append(collisionIndex)
         if self.frames >= self.length:
             self.delete = True
 
 # Possible enemies for each difficulty level room
-ENEMIES = { 1 : [Goblin(5, 5, 1, 1, 150, 0.1, 5, 25),
-                 Saladmander(5, 5, 1, 1, 50, 0.03, 0, 0, gun=Gun([-5, 0, 5], "Spread Fire", 0, 0.4, 100, 2, 10, 0, -15, 0.2, 1, "semi"))] ,
-            2 : [Goblin(5, 5, 1, 1, 150, 0.1, 5, 25),
-                 Saladmander(5, 5, 1, 1, 50, 0.03, 0, 0, gun=Gun([-5, 0, 5], "Spread Fire", 0, 0.4, 100, 2, 10, 0, -15, 0.2, 1, "semi"))] ,
-            3 : [Goblin(5, 5, 1, 1, 150, 1, 5, 25)] ,
-            4 : [Voidling(5, 5, 1, 1, 250, 0.08, 5, 25)] ,
-            5 : [Voidling(5, 5, 1, 1, 250, 0.08, 5, 25)] }
+ENEMIES = { 1 : [Goblin(150, 0.1, 5, 25), WillOTheWisp(150, 0.08, 5, 25),
+                 Saladmander(50, 0.03, 0, 0, gun=Gun([-5, 0, 5],    "Spread Fire", 0, 0.4, 100, 2, 10, 0, -15, 0.2, 1, "semi"))] ,
+            2 : [Goblin(150, 0.1, 5, 25)] ,
+            3 : [Goblin(150, 0.1, 5, 25)] ,
+            4 : [Voidling(250, 0.08, 5, 25),
+                 Saladmander(50, 0.03, 0, 0, gun=Gun([-5, 5],       "Spread Fire", 0, 0.4, 100, 2, 10, 0, -15, 0.2, 1, "semi"))] ,
+            5 : [Voidling(250, 0.08, 5, 25)] }
 
 # Room class
 class Room:

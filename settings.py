@@ -28,8 +28,10 @@ WHITEA          = (255, 255, 255, 100)
 BLACKA          = (  0,   0,   0, 100)
 BROWNA          = (188, 113, 113, 100)
 ORANGEA         = (255, 150, 150, 100)
+REDA            = (200,  50,  50, 100)
+YELLOWA         = (248, 222, 126, 100)
 BLUEA           = (100, 100, 255, 100)
-GREENA          = ( 50, 200,  50, 100)
+GREENA          = (249, 166,   2, 100)
 PURPLEA         = (128,   0, 128, 100)
 
 RARITIES        = [WHITEA, GREENA, BLUEA, PURPLEA, ORANGEA]
@@ -52,8 +54,9 @@ DIRECTIONS      = { 0       : "RIGHT" ,
                     270     : "UP"    ,
                     360     : "RIGHT" }
 
-DIFFICULTY_KEY  = {0 : 1, 5 : 2, 10 : 3, 15 : 4, 20 : 5}
-ENEMY_NUMBERS   = {1 : 4,  2 : 5,  3 : 6,  4 : 8,  5 : 8}
+DIFFICULTY_KEY  = {0 : 1, 8 : 2, 13 : 3, 17 : 4, 20 : 5}
+DIFFICULTY_COLOURS = {1 : WHITEA, 2 : YELLOWA, 3 : REDA, 4 : ORANGEA, 5 : PURPLEA}
+ENEMY_NUMBERS   = {1 : 4,  2 : 4,  3 : 4,  4 : 4,  5 : 4}
 
 TRIG_ACCURACY   = 90
 

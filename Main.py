@@ -72,9 +72,10 @@ def draw(grid, tileMapList, players, bullets, seeItems, guns, minimap, activeFra
         # Draws bullets
         for bullet in bullets:
             if (bullet.worldX, bullet.worldY) == (player.worldX, player.worldY):
-                pygame.draw.circle(screen,   WHITE, (round(bullet.x *  TILE_WIDTH) + DISPLAY_KEY[i][0],
-                                                     round(bullet.y * TILE_HEIGHT) + DISPLAY_KEY[i][1]),
-                                                     round(bullet.r * TILE_WIDTH))
+                screen.blit(bullet.images[bullet.age % len(bullet.images)], (bullet.x * TILE_WIDTH, bullet.y * TILE_HEIGHT))
+##                pygame.draw.circle(screen,   WHITE, (round(bullet.x *  TILE_WIDTH) + DISPLAY_KEY[i][0],
+##                                                     round(bullet.y * TILE_HEIGHT) + DISPLAY_KEY[i][1]),
+##                                                     round(bullet.r * TILE_WIDTH))
         # Draws enemies
         if m.enemies:
             for e in m.enemies:
@@ -254,26 +255,27 @@ def game():
         # If the player's health is less than 0 they die. Otherwise, checks for collision with melee attacks
         if players:
             for p in players:
-                if p.health <= 0: players.remove(p); break
+                #if p.health <= 0: players.remove(p); break
                 m = tileMapList[p.worldX][p.worldY]
                 if not m.simulated:
                     if m.enemies:
                         for e in m.enemies:
                             if e.health <= 0: m.enemies.remove(e); break
-                            e.AI(tileMapList[e.worldX][e.worldY], bullets, players)
+                            e.AI(tileMapList[e.worldX][e.worldY], bullets, players, m.enemies, activeFrames)
                             
                     if m.boss:
                         for b in m.boss:
                             if b.health <= 0: m.boss.remove(b); break
-                            b.AI(tileMapList[b.worldX][b.worldY], bullets, players, activeFrames)
+                            b.AI(tileMapList[b.worldX][b.worldY], bullets, players, m.enemies, activeFrames)
                     
                     for a in m.meleeRects:
                         a.update(players)
                         if a.delete: m.meleeRects.remove(a); break
                     m.simulated = True
-
+                    
 # Main loop to start the game
 def main():
+    a = [pygame.transform.scale(pygame.image.load(r"resources\bosses\hastur\up1.png"), (int(TILE_WIDTH * 8), int(TILE_HEIGHT * 8))) for i in range(1,400)]
     # Buttons that you can press/display text
     startButton     = [pygame.Rect((HALF_RES[0] - 200, HALF_RES[1], 400, 20)), "Start Game"]
     loadingButton   = [pygame.Rect((HALF_RES[0] - 200, HALF_RES[1], 400, 20)), "Loading {} Tiles".format(19 * 19)]
